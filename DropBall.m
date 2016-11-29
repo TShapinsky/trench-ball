@@ -5,13 +5,14 @@ function [times, depths ] = DropBall(diameterBall, massBall)
 
 rEarth = 6378e3;
 nominalG = 9.80665;
+pycnocline = load('pycnocline.mat');
 
     function[flows] = dropFun(~, stocks)
         depth = stocks(1);
         velocity = stocks(2);
         
         radius = diameterBall/2;
-        densityWater = 1029;%getDensity(depth);
+        densityWater = getDensity(depth);
         r = rEarth - depth;
         g = (rEarth/r)^2 * nominalG;
         %g = nominalG;
@@ -30,6 +31,11 @@ nominalG = 9.80665;
         
         flows = [velocity; acceleration];
     end
+
+    function [ density ] = getDensity( depth )
+        density = interp1q(pycnocline.depth',pycnocline.density',depth);
+    end
+
 options = odeset('RelTol',1e-2);
 [times, depths] = ode45(@dropFun, [0,60*60], [0;0], options);
 end
