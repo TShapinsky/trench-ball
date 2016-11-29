@@ -14,6 +14,7 @@ nominalG = 9.80665;
         densityWater = 1029;%getDensity(depth);
         r = rEarth - depth;
         g = (rEarth/r)^2 * nominalG;
+        %g = nominalG;
         area = pi * radius^2;
         volumeBall = (4/3) * pi * radius^3;
        
