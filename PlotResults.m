@@ -1,7 +1,7 @@
 %clf;
 %clear;
 
-[times, depths] = DropBall(.2183, 7.26);
+[times, depths] = DropBall(.2183, 7, 10916,1,1);
 
 %h = axes;
 %set(h, 'Ydir', 'reverse');

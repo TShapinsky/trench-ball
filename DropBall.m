@@ -1,4 +1,4 @@
-function [times, depths ] = DropBall(diameterBall, massBall)
+function [times, depths ] = DropBall(diameterBall, massBall, maxDepth, ignoreDensity, ignoreGravity)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -12,17 +12,26 @@ pycnocline = load('pycnocline.mat');
         velocity = stocks(2);
         
         radius = diameterBall/2;
-        densityWater = getDensity(depth);
         r = rEarth - depth;
-        g = (rEarth/r)^2 * nominalG;
-        %g = nominalG;
         area = pi * radius^2;
         volumeBall = (4/3) * pi * radius^3;
+        
+        if ~ ignoreDensity
+            densityWater = getDensity(0);
+        else
+            densityWater = getDensity(depth);
+        end
+        
+        if ~ ignoreGravity
+            g = nominalG;
+        else
+            g = (rEarth/r)^2 * nominalG;
+        end
        
-        forceDrag = (1/2)* densityWater * velocity^2 * .5 * area;
+        forceDrag = (1/2)* densityWater * velocity^2 * .47 * area;
         forceGravity = massBall * g;
         
-        forceBuoyant = volumeBall*densityWater;
+        forceBuoyant = volumeBall*densityWater*g;
         
         forceEffective = forceGravity - forceDrag - forceBuoyant;
         
@@ -36,7 +45,14 @@ pycnocline = load('pycnocline.mat');
         density = interp1q(pycnocline.depth',pycnocline.density',depth);
     end
 
-options = odeset('RelTol',1e-2);
-[times, depths] = ode45(@dropFun, [0,60*60], [0;0], options);
+    function [value, isTerminal, direction] = events(~, currentStock)
+        depth = currentStock(1);
+        value = maxDepth - depth;
+        isTerminal = 1;
+        direction = -1;
+    end
+
+options = odeset('Events', @events);
+[times, depths] = ode45(@dropFun, [0,60*60*3], [0;0], options);
 end
 
