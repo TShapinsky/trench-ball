@@ -42,7 +42,7 @@ pycnocline = load('pycnocline.mat');
     end
 
     function [ density ] = getDensity( depth )
-        density = interp1q(pycnocline.depth',pycnocline.density',depth);
+        density = interp1q(pycnocline.depths',pycnocline.densities',depth);
     end
 
     function [value, isTerminal, direction] = events(~, currentStock)
@@ -52,7 +52,7 @@ pycnocline = load('pycnocline.mat');
         direction = -1;
     end
 
-options = odeset('Events', @events);
-[times, depths] = ode45(@dropFun, [0,60*60*3], [0;0], options);
+options = odeset('Events', @events, 'RelTol',1e-2);
+[times, depths] = ode23s(@dropFun, [0,60*60*3], [0;0], options);
 end
 

@@ -6,7 +6,7 @@
 %h = axes;
 %set(h, 'Ydir', 'reverse');
 hold on;
-plot(times / 60, depths(:,1));
+plot(times / 60, depths(:,2));
 
 xlabel('Time (min)');
 ylabel('Depth (m)');

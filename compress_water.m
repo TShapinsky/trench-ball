@@ -12,8 +12,9 @@ function [ dep,dens ] = compress_water(  )
     function [flows] = pressure_dq(t,y)
         pressure =  y;
         r = rEarth - t;
-        g =  (rEarth/r)^2 * nominalG;
-        density = (1 - get_compressibility(pressure,t))*nominalDensity;
+        g =  nominalG;%(rEarth/r)^2 * nominalG;
+        %density = (1 - get_compressibility(pressure,t))*nominalDensity;
+        density = (1 - compression_water(pressure,t))*nominalDensity;
         dep = [dep,t];
         wd = [wd,density];
         tp = [tp, t];
@@ -21,9 +22,9 @@ function [ dep,dens ] = compress_water(  )
     
     end
 
-    function [volume] = compression_water(p)
-        b = 4.58e-10;
+    function [volume] = compression_water(p,depth)
         p = p -pressureATM;
+        b = get_compressibility(p,depth);
         volume = -b*p;
     end
 
@@ -53,14 +54,15 @@ function [ dep,dens ] = compress_water(  )
     function [S] = getHalocline(depth)
         S = interp1(halocline.Depthm,halocline.Salinitypsu,depth,'pchip',halocline.Salinitypsu(end));
     end
-    options = odeset('RelTol',1e-6,'AbsTol',1e-4);
+    options = odeset('RelTol',1e-6,'AbsTol',1e-8);
     [d,y] = ode45(@(t,y) pressure_dq(t,y),[0,11e3],[pressureATM],options);
     y = [y,y - d*nominalDensity*nominalG];
     p = y(:,2)./y(:,1);
-    plot(d,y(:,1));
+    %plot(d,y(:,1));
     %plot(tp,wd./nominalDensity./nominalG);
     max(wd./nominalDensity./nominalG)
     max(y(:,1))
+    plot(dep,wd);
     dens = wd;
 end
 
