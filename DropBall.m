@@ -4,7 +4,9 @@ function [times, depths ] = DropBall(diameterBall, massBall, maxDepth, ignoreDen
 
 
 rEarth = 6378e3;
-nominalG = 9.80665;
+lat = 11.363;
+lon = 142.589;
+nominalG = gravitywgs84(0,lat,lon,'Exact');
 pycnocline = load('pycnocline.mat');
 
     function[flows] = dropFun(~, stocks)
@@ -20,12 +22,15 @@ pycnocline = load('pycnocline.mat');
             densityWater = getDensity(0);
         else
             densityWater = getDensity(depth);
+            if isnan(densityWater)
+                densityWater = pycnocline.densities(end);
+            end
         end
         
         if ~ ignoreGravity
-            g = nominalG;
+            g = 9.80665;
         else
-            g = (rEarth/r)^2 * nominalG;
+            g = (nominalG+(2.224e-6*depth));
         end
        
         forceDrag = (1/2)* densityWater * velocity^2 * .47 * area;
@@ -42,17 +47,18 @@ pycnocline = load('pycnocline.mat');
     end
 
     function [ density ] = getDensity( depth )
-        density = interp1q(pycnocline.depths',pycnocline.densities',depth);
+        density = interp1q(pycnocline.depths',pycnocline.densities,depth);
     end
 
     function [value, isTerminal, direction] = events(~, currentStock)
         depth = currentStock(1);
-        value = maxDepth - depth;
-        isTerminal = 1;
-        direction = -1;
+        vel = currentStock(2);
+        value = [maxDepth - depth,vel];
+        isTerminal = [1,1];
+        direction = [-1,-1];
     end
 
-options = odeset('Events', @events, 'RelTol',1e-2);
-[times, depths] = ode23s(@dropFun, [0,60*60*3], [0;0], options);
+options = odeset('Events', @events, 'RelTol',1e-10);
+[times, depths] = ode23s(@dropFun, [0,60*60*8], [0;0], options);
 end
 

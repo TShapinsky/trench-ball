@@ -1,6 +1,9 @@
 function [depths, densities] = density ()
 clines = load('clines.mat');
 clines = clines.clines;
+lat = 11.363;
+lon = 142.589;
+g = gravitywgs84(0,lat,lon,'Exact');
 pressureATM = 101325;
 poly = [
     0,0,0, 9.9920571e02;
@@ -43,7 +46,7 @@ poly = [
         density = getDensity(t,p,S);
         densities = [densities;density];
         depths = [depths,depth];
-        density = density *9.80655;
+        density = density *(g+(2.224e-6*depth));
     end
 
     function [density] = getDensity(t,p,S)
